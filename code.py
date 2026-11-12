@@ -8,3 +8,5 @@ import time
 from gurobipy import Model,GRB,LinExpr
 import pickle
 
+print("test")
+
