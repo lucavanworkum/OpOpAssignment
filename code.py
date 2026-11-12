@@ -9,4 +9,5 @@ import pickle
 import gurobipy as gb
 
 m = gb.Model()
+help(gb.Model)
 
