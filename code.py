@@ -115,6 +115,24 @@ z = model.addVars(pairs, vtype = gb.GRB.BINARY, name = 'z')
 model.update()
 
 
+        # formulate the objective func
+
+
+
+
+        # implement constraints
+
+
+
+
+
+        # Solve and validate
+
+
+
+
+        # visualize
+
 
 
 
