@@ -7,7 +7,7 @@ import pickle
 import gurobipy as gb
 
 
-# LOAD DATA
+        # LOAD DATA
 
 
 #Variables
@@ -64,7 +64,7 @@ transit_pass = flight_data.iloc[:, 7].tolist()
 #print(transit_pass)
 
 
-# PREPARE DATA
+        # PREPARE DATA
 
 
 # function to change the time stamps to minutes
@@ -92,6 +92,43 @@ airlines = list(flights_airline.keys())
 # make the distinction between contact and remote gates
 c_gates = [g for g, t in zip(gates, gate_type) if t == 'C']
 x_c_count = len(c_gates)
+
+
+        #setup decisiion variables y(i,g_k) and z(fi, fj)
+            # y(i,g_k) is the assignment of a flight to a gate, 1 if flight i is assigned to gate k, 0 otherwise
+            # z(fi, fj) is the sequence var, 1 if flight i is assigned to the same gate as flight j, flight i arriving before j, needed for the safety time interval
+
+
+model = gb.Model("Gate_Ass")
+
+# first for var y
+# y[f, g] = 1 if flight f assigned to gate g, 0 otherwise
+y = model.addVars(flights, gates, vtype = gb.GRB.BINARY, name = 'y')  #use binary since either 0 or 1
+
+# now for var z
+# z[(fi, fj)] = 1 if fi and fj are assigned to the smae gate, 0 otherwise
+pairs = [(flights[i], flights[j]) for i in range(len(flights)) for j in range(i+1, len(flights))]
+
+z = model.addVars(pairs, vtype = gb.GRB.BINARY, name = 'z')
+
+#update the model
+model.update()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # thisLHS = LinExpr()
