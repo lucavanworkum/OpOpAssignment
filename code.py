@@ -29,9 +29,10 @@ for a in set(airline):
     ]
 print(flights_airline)
 
-gate_data = pd.read_excel(file_path_gate, sheet_name="Sheet1", usecols=[0, 1])
+gate_data = pd.read_excel(file_path_gate, sheet_name="Sheet1")
 #gates = set of gates (10 in data of paper)
 gates = gate_data.iloc[:, 0].tolist()
+print(gates)
 #gate_size = size of gate (S,M,L)
 gate_size = gate_data.iloc[:, 1].tolist()
 
