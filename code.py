@@ -7,12 +7,14 @@ import pickle
 import gurobipy as gb
 
 
-#m = gb.Model()
-#help(gb.Model)
+# LOAD DATA
+
 
 #Variables
 file_path_flight = os.path.join(os.path.dirname(__file__), "data", "flight data.xlsx")
 file_path_gate = os.path.join(os.path.dirname(__file__), "data", "gate data.xlsx")
+
+M_big = 300
 
 # Read the first three columns: flight, aircraft size, and airline.
 flight_data = pd.read_excel(file_path_flight, sheet_name="Sheet1")
@@ -35,7 +37,6 @@ gates = gate_data.iloc[:, 0].tolist()
 #gate_size = size of gate (S,M,L)
 gate_size = gate_data.iloc[:, 1].tolist()
 
-
 #t_arrival column 4
 t_arrival = flight_data.iloc[:, 3].tolist()
 #t_departure column 5
@@ -50,6 +51,10 @@ d_departure = gate_data.iloc[:, 3].tolist()
 #d_transit: distance gate to transit counter (column 5 of gate data)
 d_transit = gate_data.iloc[:, 4].tolist()
 
+#gate_type: gate type, c for contact, r for remote stand
+gate_type = gate_data.iloc[:, 6].tolist()
+# print(gate_type)
+
 #arrival_pass: number of passengers arriving at the airport (column 6 of flight data)
 arrival_pass = flight_data.iloc[:, 5].tolist()
 #departure_pass: number of passengers departing from the airport (column 7 of flight data)
@@ -59,7 +64,34 @@ transit_pass = flight_data.iloc[:, 7].tolist()
 #print(transit_pass)
 
 
+# PREPARE DATA
 
+
+# function to change the time stamps to minutes
+def time_to_min(t):
+    if isinstance(t, str):
+        time = list(map(int, t.split(':')))
+        minutes = time[0] * 60 + time[1]
+        return minutes
+    elif hasattr(t, 'hour') and hasattr(t, 'minute'):
+        minutes = t.hour * 60 + t.minute
+        return minutes
+    else:
+        t_str = str(t).split()[-1]
+        time = list(map(int, t_str.split(':')[:2]))
+        minutes = time[0] * 60 + time[1]
+        return minutes
+
+# convert arrival time and departure time into minutes
+t_arrival = [time_to_min(t) for t in t_arrival]
+t_departure = [time_to_min(t) for t in t_departure]
+
+# find the set of airlines
+airlines = list(flights_airline.keys())
+
+# make the distinction between contact and remote gates
+c_gates = [g for g, t in zip(gates, gate_type) if t == 'C']
+x_c_count = len(c_gates)
 
 
 # thisLHS = LinExpr()
