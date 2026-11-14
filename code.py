@@ -27,12 +27,11 @@ for a in set(airline):
         flight for flight, flight_airline in zip(flights, airline)
         if flight_airline == a
     ]
-print(flights_airline)
+#print(flights_airline)
 
 gate_data = pd.read_excel(file_path_gate, sheet_name="Sheet1")
 #gates = set of gates (10 in data of paper)
 gates = gate_data.iloc[:, 0].tolist()
-print(gates)
 #gate_size = size of gate (S,M,L)
 gate_size = gate_data.iloc[:, 1].tolist()
 
@@ -57,7 +56,7 @@ arrival_pass = flight_data.iloc[:, 5].tolist()
 departure_pass = flight_data.iloc[:, 6].tolist()
 #transit_pass: number of passengers transiting through the airport (column 8 of flight data)
 transit_pass = flight_data.iloc[:, 7].tolist()
-
+#print(transit_pass)
 
 
 
