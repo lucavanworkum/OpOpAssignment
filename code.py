@@ -232,13 +232,11 @@ elif mode == 'Z12':
 
 
 model.optimize()
-
+if model.status == gb.GRB.OPTIMAL:
+    z1_out = Z1_eq.getValue()
+    print()
 
         # visualize
-
-
-
-
 
 
 
