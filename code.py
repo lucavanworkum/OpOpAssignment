@@ -150,7 +150,78 @@ for f in flights:
     model.addConstr(gb.quicksum(y[f, g] for g in gates) == 1, name = f"gate_ass{f}")
 
 
-        # implement objective function
+        # choice menu for mode
+
+
+print("select mode:")
+print("1: Z1, 2: Z2, 3: Z1 with bound Z2")
+choice = input("Enter mode (default: 3): ")
+
+if choice == '1':
+    mode = 'Z1'
+    epsilon = None
+elif choice == '2':
+    mode = 'Z2'
+    epsilon = None
+else:
+    mode = 'Z12'
+    inp_epsilon = input("Enter espilon (default: 0.10): ")
+    try:
+        epsilon = float(inp_epsilon) if inp_epsilon else 0.10
+    except ValueError:
+        print("invalid epsilon (default epsilon 0.10): ")
+        epsilon = 0.10
+
+
+        # prepare objective function, make dict from all lists
+
+
+d_arrival_dict = dict(zip(gates, d_arrival))
+d_departure_dict = dict(zip(gates, d_departure))
+d_transit_dict = dict(zip(gates, d_transit))
+
+arrival_pass_dict = dict(zip(flights, arrival_pass))
+departure_pass_dict = dict(zip(flights, departure_pass))
+transit_pass_dict = dict(zip(flights, transit_pass))
+
+
+        # implement objective function Z1 from equation 2
+Z1_eq = gb.quicksum(y[f, g] * (arrival_pass_dict[f] * d_arrival_dict[g] + 
+                               departure_pass_dict[f] * d_departure_dict[g] + 
+                               transit_pass_dict[f] * d_transit_dict[g]) for f in flights for g in gates)
+
+
+        # implement objective function Z2 from equation 6
+al_tot_pax = {}
+al_walk_eq = {}
+
+for l in airlines:
+    al_tot_pax[l] = sum(arrival_pass[flights.index(f)] + departure_pass[flights.index(f)] + transit_pass[flights.index(f)] 
+                        for f in flights_airline[l])
+    al_walk_eq[l] = gb.quicksum(y[f, g] * (arrival_pass_dict[f] * d_arrival_dict[g] + 
+                                           departure_pass_dict[f] * d_departure_dict[g] + 
+                                           transit_pass_dict[f] * d_transit_dict[g]
+                                           )
+                                           for f in flights_airline[l] for g in gates)
+
+tot_pax_all = sum(al_tot_pax.values())
+
+
+        # objective function basaed on mode choice
+if mode == 'Z1':
+    model.setObjective(Z1_eq, gb.GRB.MINIMIZE)
+    print("mode 1, minimize pax walking distance")
+elif mode == 'Z2':
+    deviation = model.addVars(airlines, lb=0.0, vtype = gb.GRB.CONTINUOUS, name = "deviation")
+    for l in airlines:
+        share = al_tot_pax[l]/tot_pax_all
+        model.addConstr(deviation[l] >= al_walk_eq[l] - share * Z1_eq, name = f'Positive_dev_{l}')
+        model.addConstr(deviation[l] >= share * Z1_eq - al_walk_eq[l], name = f"Negative_dev_{l}")
+
+    model.setObjective(gb.quicksum(deviation[l] for l in airlines), gb.GRB.MINIMIZE)
+    print("mode 2, minimize airline unfairness")
+elif mode == 'Z12':
+    pass
 
 
 
