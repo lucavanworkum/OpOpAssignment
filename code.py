@@ -115,12 +115,42 @@ z = model.addVars(pairs, vtype = gb.GRB.BINARY, name = 'z')
 model.update()
 
 
-        # formulate the objective func
-
-
-
-
         # implement constraints
+
+
+sizes = {'S': 1, 'M': 2, 'L': 3}
+
+#Constraint 1, aerobridge should at least be 80%
+tot_pax = sum(a + d + t for a, d, t in zip(arrival_pass, departure_pass, transit_pass))
+cont_pax = gb.quicksum(y[f, g] * (a + d + t) for f, a, d, t in zip(flights, arrival_pass, departure_pass, transit_pass) for g in c_gates)
+model.addConstr(cont_pax >= (0.8 * tot_pax), name = 'contact gate pax rate')
+
+# Constraint 2, safety time interval 
+for i, fi in enumerate(flights):
+    for j, fj in enumerate(flights):
+        if i < j:
+            dep_i = t_departure[i]
+            arr_j = t_arrival[j]
+            key = (fi, fj)
+
+            for g in gates:
+                model.addConstr(z[key] <= y[fi, g] + y[fj, g], name = f"Zlink{fi},{fj},{g}")
+
+            model.addConstr(arr_j - dep_i + (1-z[key]) * M_big >= t_interval, name = f"timebuffer {fi}, {fj}")
+
+
+# Constraint 3, gate can accomodate airplane size
+for f, cap_f in zip(flights, aircraft_size):
+    for g, cap_g in zip(gates, gate_size):
+        if sizes[cap_f] > sizes[cap_g]:
+            model.addConstr(y[f, g] == 0, name = f"compatibility {f}, {g}")
+
+# Constraint 4, one and only one gate per flight
+for f in flights:
+    model.addConstr(gb.quicksum(y[f, g] for g in gates) == 1, name = f"gate_ass{f}")
+
+
+        # implement objective function
 
 
 
