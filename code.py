@@ -221,15 +221,17 @@ elif mode == 'Z2':
     model.setObjective(gb.quicksum(deviation[l] for l in airlines), gb.GRB.MINIMIZE)
     print("mode 2, minimize airline unfairness")
 elif mode == 'Z12':
-    pass
-
-
-
+    for l in airlines:
+        share = al_tot_pax[l]/tot_pax_all
+        model.addConstr(al_walk_eq[l] <= (1.0 + epsilon) * share * Z1_eq, name = f"upperbound_fairness_{l}")
+        model.addConstr(al_walk_eq[l] >= (1.0 - epsilon) * share * Z1_eq, name = f"lowerbound_fairness_{l}")
+    model.setObjective(Z1_eq, gb.GRB.MINIMIZE)
 
 
         # Solve and validate
 
 
+model.optimize()
 
 
         # visualize
