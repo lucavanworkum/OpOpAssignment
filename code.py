@@ -134,7 +134,7 @@ for i, fi in enumerate(flights):
             key = (fi, fj)
 
             for g in gates:
-                model.addConstr(z[key] <= y[fi, g] + y[fj, g], name = f"Zlink{fi},{fj},{g}")
+                model.addConstr(z[key] >= y[fi, g] + y[fj, g] - 1, name = f"Zlink{fi},{fj},{g}")
 
             model.addConstr(arr_j - dep_i + (1-z[key]) * M_big >= t_interval, name = f"timebuffer {fi}, {fj}")
 
