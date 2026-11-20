@@ -152,6 +152,8 @@ for f in flights:
 
         # choice menu for mode
 
+# Constraint 5 is not needed as a separate constraint: bc binary is defined in variables
+
 
 print("select mode:")
 print("1: Z1, 2: Z2, 3: Z1 with bound Z2")
@@ -217,6 +219,8 @@ elif mode == 'Z2':
     zmax = model.addVar(lb=0.0, name="zmax")
     # deviation = model.addVars(airlines, lb=0.0, vtype = gb.GRB.CONTINUOUS, name = "deviation")
     for l in airlines:
+        airline_average = al_walk_eq[l] / al_tot_pax[l]
+        overall_average = Z1_eq / tot_pax_all
         share = al_tot_pax[l]/tot_pax_all
         model.addQConstr(al_walk_eq[l] <= (1 + zmax) * share * Z1_var, name=f"upper_{l}")
         model.addQConstr(al_walk_eq[l] >= (1 - zmax) * share * Z1_var, name=f"lower_{l}")
