@@ -212,13 +212,18 @@ if mode == 'Z1':
     model.setObjective(Z1_eq, gb.GRB.MINIMIZE)
     print("mode 1, minimize pax walking distance")
 elif mode == 'Z2':
-    deviation = model.addVars(airlines, lb=0.0, vtype = gb.GRB.CONTINUOUS, name = "deviation")
+    Z1_var = model.addVar(lb=0.0, name="Z1_var")
+    model.addConstr(Z1_var == Z1_eq, name="Z1_def")
+    zmax = model.addVar(lb=0.0, name="zmax")
+    # deviation = model.addVars(airlines, lb=0.0, vtype = gb.GRB.CONTINUOUS, name = "deviation")
     for l in airlines:
         share = al_tot_pax[l]/tot_pax_all
-        model.addConstr(deviation[l] >= al_walk_eq[l] - share * Z1_eq, name = f'Positive_dev_{l}')
-        model.addConstr(deviation[l] >= share * Z1_eq - al_walk_eq[l], name = f"Negative_dev_{l}")
+        model.addQConstr(al_walk_eq[l] <= (1 + zmax) * share * Z1_var, name=f"upper_{l}")
+        model.addQConstr(al_walk_eq[l] >= (1 - zmax) * share * Z1_var, name=f"lower_{l}")
 
-    model.setObjective(gb.quicksum(deviation[l] for l in airlines), gb.GRB.MINIMIZE)
+    model.Params.NonConvex = 2
+    model.setObjective(zmax, gb.GRB.MINIMIZE)
+    # model.setObjective(gb.quicksum(deviation[l] for l in airlines), gb.GRB.MINIMIZE)
     print("mode 2, minimize airline unfairness")
 elif mode == 'Z12':
     for l in airlines:
@@ -234,7 +239,9 @@ elif mode == 'Z12':
 model.optimize()
 if model.status == gb.GRB.OPTIMAL:
     z1_out = Z1_eq.getValue()
-    print()
+    z2_out = zmax.getValue() 
+    print(z1_out)
+    print(z2_out)
 
 
         # visualize
